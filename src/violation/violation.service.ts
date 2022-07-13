@@ -3,7 +3,7 @@ import { CreateViolationDto } from './dto/create-violation.dto';
 import { UpdateViolationDto } from './dto/update-violation.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ViolationEntity } from './entities/violation.entity';
-import { Repository } from 'typeorm';
+import { Like, RelationId, Repository } from 'typeorm';
 import { SearchViolationDto } from './dto/search-violation.dto';
 
 @Injectable()
@@ -26,64 +26,71 @@ export class ViolationService {
   }
 
 
-  async popular() {
-    const qb= this.repository.createQueryBuilder('violation');
-    qb.orderBy('id', 'DESC');
-    qb.limit(10);
-    const [items, total] = await qb.getManyAndCount();
-    return {
-      items,
-      total,
-    };
-  }
 
+  async search(dto: SearchViolationDto) {
+    const qb = this.repository.createQueryBuilder('v');
 
-  async search(SearchDto: SearchViolationDto) {
-    const qb= this.repository.createQueryBuilder('v');
-
-    if (SearchDto.foto){
+    if (dto.foto) {
       qb.where('v.url_foto ILIKE :foto')
     }
 
     qb.setParameters({
-      foto: '%' + SearchDto.foto +'%'
+      foto: `%${dto.foto}%`
     });
 
+    //console.log(qb.getSql())
     const [items, total] = await qb.getManyAndCount();
     return { items, total };
-
   }
 
 
-  findAll() {
-    return this.repository.find({
-      order: {
-        createdAt: 'DESC'
-      }
+  async findAll() { 
+    const find = await this.repository.find({
+      order: { createdAt: 'DESC' },
+      relations: ['deps']
     });
+
+    if (!find) {
+      throw new NotFoundException('Записей не найдено');
+    } 
+
+    return find;
   }
 
   async findOne(id: number) {
-    const find = await this.repository.findOneBy({ id });
+    const find = await this.repository.findOne({ where: { id }, });
     if (!find) {
-      throw new NotFoundException('Нарушение не найдено');
+      throw new NotFoundException('Записей не найдено');
     }
-    return find;
+
+    await this.repository.createQueryBuilder('violations')
+      .whereInIds(id).update().set({ views: () => 'views + 1' }).execute()
+
+    return await this.repository.findOne({
+      relations: ['deps'],
+      where: { id },
+    });
   }
 
   async update(id: number, dto: UpdateViolationDto) {
     const find = await this.repository.findOneBy({ id });
     if (!find) {
-      throw new NotFoundException('Нарушение не найдено');
+      throw new NotFoundException('Запись не найдена');
     }
 
     return this.repository.update(id, dto);
   }
 
-  remove(id: number) {
+  async remove(id: number) {
+    const find = await this.repository.findOne({ where: { id }, });
+    if (!find) {
+      throw new NotFoundException('Запись не найдена');
+    }
+
     return this.repository.delete(id);
   }
 }
+
 function dto(dto: any) {
   throw new Error('Function not implemented.');
 }

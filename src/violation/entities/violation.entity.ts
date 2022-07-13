@@ -24,7 +24,7 @@ export class ViolationEntity {
     @Column({nullable: true})
     declarant?: string;
 
-    @ManyToOne(()=> DepsEntity)
+    @ManyToOne(()=> DepsEntity, {nullable: false})
     @JoinColumn({name: 'deps_id'})
     deps: DepsEntity;
 
@@ -33,5 +33,8 @@ export class ViolationEntity {
 
     @CreateDateColumn({type: 'timestamp'})
     updatedAt: string;
+
+    @Column({default: 0})
+    views?: number;
 
 }

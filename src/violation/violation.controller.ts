@@ -13,17 +13,10 @@ export class ViolationController {
     return this.violationService.create(dto);
   }
 
-  @Get('/popular')
-  gepPopularPosts(){
-    return this.violationService.popular();
-  }
-
   @Get('/search')
-  search(@Query() SearchDto: SearchViolationDto){
-    return this.violationService.search(SearchDto);
+  search(@Query() dto: SearchViolationDto){
+    return this.violationService.search(dto);
   }
-
-
 
   @Get()
   findAll() {
