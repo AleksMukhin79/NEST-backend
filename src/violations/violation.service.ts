@@ -15,17 +15,12 @@ export class ViolationService {
 
   create(dto: CreateViolationDto) {
     return this.repository.save({
-      url_foto: dto.url_foto,
-      description: dto.description,
-      coordinates: dto.coordinates,
-      tab_num: dto.tab_num,
       violator: dto.violator,
+      tab_num: dto.tab_num,
       declarant: dto.declarant,
       deps: { id: dto.deps_id }
     });
   }
-
-
 
   async search(dto: SearchViolationDto) {
     const qb = this.repository.createQueryBuilder('v');
@@ -46,7 +41,7 @@ export class ViolationService {
 
   async findAll() { 
     const find = await this.repository.find({
-      order: { createdAt: 'DESC' },
+      order: { createdAt: 'ASC' },
       relations: ['deps']
     });
 

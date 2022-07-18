@@ -6,20 +6,11 @@ export class ViolationEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column()
-    url_foto: string;
-
     @Column({nullable: true})
-    description?: string;
-
-    @Column({nullable: true})
-    coordinates?: string;
+    violator?: string;
 
     @Column({nullable: true})
     tab_num?: number
-
-    @Column({nullable: true})
-    violator?: string;
 
     @Column({nullable: true})
     declarant?: string;
